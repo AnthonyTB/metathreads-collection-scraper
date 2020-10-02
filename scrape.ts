@@ -15,11 +15,16 @@ app.route("/query/:name").get(async (req, res) => {
 
   const response = await fetch(url);
   const html = await response.text();
-  const itemArray = [];
+  const itemArray: any = [];
   const $ = cheerio.load(html);
   $(".ProductItem .ProductItem__Wrapper a").each((i: number, el) => {
     itemArray.push({
-      [i]: { link: `https://metathreads.com${$(el).attr("href")}` },
+      [i]: { Link: `https://metathreads.com${$(el).attr("href")}` },
+    });
+  });
+  $(".ProductItem .ProductItem__Wrapper div h2 a").each((i: number, el) => {
+    itemArray.push({
+      [i]: { Heading: $(el).text() },
     });
   });
   if (itemArray.length) {
