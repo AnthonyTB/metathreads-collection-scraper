@@ -41,13 +41,13 @@ app.route("/query/:name").get(async (req: Request, res: Response) => {
       // grabs the item's name
       const ItemName: string = $(el).find(".ProductItem__Title a").text();
 
-      // grabs the image's url
+      // grabs the item's image url
       const ItemImg: string = $(el)
         .find(".ProductItem__Image")
         .attr("data-src")
         .replace(/\s*\{.*?\}\s*/g, "600");
 
-      // grabs the image's alt attr for accessibility
+      // grabs the item's image alt attr for accessibility
       const ItemImgAlt: string = $(el).find(".ProductItem__Image").attr("alt");
 
       // grabs the link to the item
@@ -55,7 +55,7 @@ app.route("/query/:name").get(async (req: Request, res: Response) => {
         .find(".ProductItem__Title a")
         .attr("href")}`;
 
-      // grabs numerical value for the items price
+      // grabs numerical value for the item's price
       const ItemPrice: number = +$(el)
         .find(".ProductItem__PriceList span")
         .first()
