@@ -1,69 +1,102 @@
 import cheerio from "cheerio";
-import express from "express";
+import express, { Response, Request } from "express";
 import { IItemObject } from "./interfaces";
 import fetch from "node-fetch";
 
+// inits express router
 const app = express();
 
-app.use(function errorHandler(error: any, req: any, res: any, next: any) {
-  const response = { error: { message: "server error" } };
-  res.status(500).json(response);
-});
-
-app.route("/query/:name").get(async (req, res) => {
+// route for querying items from metathreads collection
+// params: name <string>
+app.route("/query/:name").get(async (req: Request, res: Response) => {
   const { name } = req.params;
   let pageCount: number = 1;
-  const url: string = `https://metathreads.com/collections/${name}?page=${pageCount}`;
-  let response = await fetch(url);
-  const html = await response.text();
-  const itemArray: any = [];
-  const $ = cheerio.load(html);
+  const itemArray: IItemObject[] = [];
 
-  const isPaginated =
-    $(".Pagination").has(".Pagination__Nav").length > 0 ? true : false;
+  const grabData = async () => {
+    const url: string = `https://metathreads.com/collections/${name}?page=${pageCount}`;
 
-  $(".ProductItem__Wrapper").each(async (i: number, el) => {
-    const ItemName = $(el).find(".ProductItem__Title a").text();
-    const ItemImg = $(el)
-      .find(".ProductItem__Image")
-      .attr("data-src")
-      .replace(/\s*\{.*?\}\s*/g, "600");
-    const ItemImgAlt = $(el).find(".ProductItem__Image").attr("alt");
-    const ItemLink = `https://metathreads.com${$(el)
-      .find(".ProductItem__Title a")
-      .attr("href")}`;
-    const ItemPrice = Number(
-      $(el).find(".ProductItem__PriceList span").first().text().substring(2)
-    );
-    const ItemSoldOut =
-      $(el)
-        .find(".ProductItem__LabelList .ProductItem__Label")
-        .text()
-        .toLowerCase() === "sold out"
+    // fetches html from url
+    const response = await fetch(url);
+
+    // grabs html from response object
+    const html = await response.text();
+
+    // inits html for scraping
+    const $ = cheerio.load(html);
+
+    // checks if its on a paginted page so we know if theres more items to grab
+    const isPaginated =
+      $(".ProductItem__Wrapper").has(".ProductItem__Info").length > 0
         ? true
         : false;
 
-    const ResponseObject: IItemObject = {
-      ItemName,
-      ItemImg,
-      ItemImgAlt,
-      ItemLink,
-      ItemPrice,
-      ItemSoldOut,
-    };
-    console.log(ResponseObject, pageCount);
-    itemArray.push({
-      [i]: ResponseObject,
+    // checks to see if theres anymore items left to scrape and stops recursion
+    if (itemArray.length > 0 && !isPaginated) {
+      console.log("hi im done", itemArray.length);
+      return itemArray;
+    }
+
+    $(".ProductItem__Wrapper").each(async (i: number, el) => {
+      // grabs the item's name
+      const ItemName: string = $(el).find(".ProductItem__Title a").text();
+
+      // grabs the image's url
+      const ItemImg: string = $(el)
+        .find(".ProductItem__Image")
+        .attr("data-src")
+        .replace(/\s*\{.*?\}\s*/g, "600");
+
+      // grabs the image's alt attr for accessibility
+      const ItemImgAlt: string = $(el).find(".ProductItem__Image").attr("alt");
+
+      // grabs the link to the item
+      const ItemLink: string = `https://metathreads.com${$(el)
+        .find(".ProductItem__Title a")
+        .attr("href")}`;
+
+      // grabs numerical value for the items price
+      const ItemPrice: number = +$(el)
+        .find(".ProductItem__PriceList span")
+        .first()
+        .text()
+        .substring(2);
+
+      // grabs boolean value for if the item is sold out or not
+      const ItemSoldOut: boolean =
+        $(el)
+          .find(".ProductItem__LabelList .ProductItem__Label")
+          .text()
+          .toLowerCase() === "sold out"
+          ? true
+          : false;
+
+      // formats data into proper format
+      const ResponseObject: IItemObject = {
+        ItemName,
+        ItemImg,
+        ItemImgAlt,
+        ItemLink,
+        ItemPrice,
+        ItemSoldOut,
+      };
+      console.log(ResponseObject, pageCount);
+      // adds formatted data to the itemArray
+      itemArray.push({
+        ...ResponseObject,
+      });
     });
-  });
 
-  if (isPaginated) {
+    // increments the page count for recursion
     ++pageCount;
-    console.log(pageCount);
-    response = await fetch(url);
-  }
+    grabData();
+  };
 
+  await grabData();
+
+  // checks if the scraper successfully got items from html
   if (itemArray.length) {
+    console.log("final", itemArray.length);
     res.status(200).json(itemArray).end();
   } else {
     res
@@ -73,6 +106,6 @@ app.route("/query/:name").get(async (req, res) => {
   }
 });
 
-app.listen(8000, () => console.log("Server Running"));
+app.listen(8000, (): void => console.log("Server Running"));
 
 module.exports = app;
