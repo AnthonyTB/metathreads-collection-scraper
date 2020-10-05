@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const cheerio_1 = __importDefault(require("cheerio"));
 const express_1 = __importDefault(require("express"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
+const config_1 = __importDefault(require("./config"));
 // inits express router
 const app = express_1.default();
 // route for querying items from metathreads collection
@@ -96,6 +97,6 @@ app.route("/query/:name").get((req, res) => __awaiter(void 0, void 0, void 0, fu
             .end();
     }
 }));
-app.listen(8000, () => console.log("Server Running"));
+app.listen(config_1.default.PORT, () => console.log("Server Running"));
 module.exports = app;
 //# sourceMappingURL=scrape.js.map
