@@ -6,7 +6,7 @@
 
 ## Request
 
-> You would send a GET request to [https://metathreads.herokuapp.com/] with the collection name at the end (example: /astro-gaming). If you don't use a vaild collection name you will get back a 400 with an error message.
+> You would send a GET request to [https://metathreads.herokuapp.com/query/] with the collection name at the end (example: https://metathreads.herokuapp.com/query/astro-gaming). If you don't use a vaild collection name you will get back a 400 with an error message.
 
 ## Response
 
