@@ -32,8 +32,10 @@ app.route("/query/:name").get(async (req: Request, res: Response) => {
         : false;
 
     // checks to see if theres anymore items left to scrape and stops recursion
-    if (itemArray.length > 0 && !isPaginated) {
-      console.log("hi im done", itemArray.length);
+    if (
+      (itemArray.length && !isPaginated) ||
+      (!itemArray.length && !isPaginated && pageCount > 1)
+    ) {
       return itemArray;
     }
 
@@ -89,17 +91,15 @@ app.route("/query/:name").get(async (req: Request, res: Response) => {
 
     // increments the page count for recursion
     ++pageCount;
-    grabData();
+    await grabData();
   };
 
   await grabData();
-
   // checks if the scraper successfully got items from html
   if (itemArray.length) {
-    console.log("final", itemArray.length);
-    res.status(200).json(itemArray).end();
+    return res.status(200).json(itemArray).end();
   } else {
-    res
+    return res
       .status(400)
       .send({ error: { message: "Invalid collection name" } })
       .end();
