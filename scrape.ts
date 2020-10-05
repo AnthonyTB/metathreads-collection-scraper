@@ -2,6 +2,7 @@ import cheerio from "cheerio";
 import express, { Response, Request } from "express";
 import { IItemObject } from "./interfaces";
 import fetch from "node-fetch";
+import config from "./config";
 
 // inits express router
 const app = express();
@@ -106,6 +107,6 @@ app.route("/query/:name").get(async (req: Request, res: Response) => {
   }
 });
 
-app.listen(8000, (): void => console.log("Server Running"));
+app.listen(config.PORT, (): void => console.log("Server Running"));
 
 module.exports = app;
