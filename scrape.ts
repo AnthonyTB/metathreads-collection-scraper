@@ -83,7 +83,6 @@ app.route("/query/:name").get(async (req: Request, res: Response) => {
         ItemPrice,
         ItemSoldOut,
       };
-      console.log(ResponseObject, pageCount);
       // adds formatted data to the itemArray
       itemArray.push({
         ...ResponseObject,
